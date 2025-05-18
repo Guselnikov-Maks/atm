@@ -9,6 +9,7 @@ import os
 
 bot = telebot.TeleBot(settings.bot_token)
 bot.delete_webhook()
+
 bot.set_my_commands([
     telebot.types.BotCommand('/start', "Запустить бота и зарегистрироватся"),
     telebot.types.BotCommand('/add_gaz', 'Добавить заправку'),
@@ -108,6 +109,7 @@ def test(message):
     bot.send_message(message.chat.id, str_block, parse_mode='html')
     bot.send_message(message.chat.id, str_q, parse_mode='html')
     bot.send_message(message.chat.id, str_a, parse_mode='html')
+    bot.send_message(message.chat.id, 'Message')
 
     
     
