@@ -7,7 +7,6 @@ import time
 import os
 
 
-#main
 bot = telebot.TeleBot(settings.bot_token)
 bot.delete_webhook()
 bot.set_my_commands([
@@ -34,7 +33,6 @@ def get_km(message):
     user = db.get_user_data(message.chat.id)
     bot.send_message(message.chat.id, 'Ожидайте')
     bot.send_message(message.chat.id, web.get_km(user[0][0], user[0][1]))
-
 
 
 @bot.message_handler(commands=['add_gaz'])
@@ -113,8 +111,6 @@ def test(message):
 
     
     
-
-
 @bot.message_handler(commands=['delete'])
 def delete_user(message):
     bot.send_message(message.chat.id, db.delete_user(message.chat.id))

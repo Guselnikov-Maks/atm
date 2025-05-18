@@ -102,9 +102,6 @@ def get_km(chat_id):
                                  database='telegram')
         
         cursor = db.cursor()
-        #select * from km where km.date >= date_format(now(), '%Y-%m-01') and km.date < date_format(now(), '%Y-%m-01') + interval 1 month;
-        #select km from km where km.date >= date_format(now(), '%Y-%m-01') and km.date < date_format(now(), '%Y-%m-01') + interval 1 month;
-        #select km from km where chat_id = %s and km.date >= date_format(now(), '%Y-%m-01') and km.date < date_format(now(), '%Y-%m-01') + interval 1 month
         cursor.execute("select km from km where chat_id = %s and km.date >= date_format(now(), '%Y-%m-01') and km.date < date_format(now(), '%Y-%m-01') + interval 1 month", (chat_id,))
         
         data = cursor.fetchall()
@@ -150,7 +147,6 @@ def get_user_gaz(chat_id):
     cursor = db.cursor()
     cursor.execute("select user_login, user_password from gaz where chat_id = %s", (chat_id,))
     result = cursor.fetchall()
-    print(result)
     
 def add_zip(chat_id, name, number):
 

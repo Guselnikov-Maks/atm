@@ -86,7 +86,6 @@ def get_km(user_login, user_password):
     except NoSuchElementException:
         driver.close()
         return 'Error'
-        print('Error')
 
 def get_list(user_login, user_password, chat_id):
     try:
@@ -186,7 +185,6 @@ def get_list(user_login, user_password, chat_id):
             sheet.cell(row=i + 2, column=8).value = comment
             
             kol += 1
-            print(kol)
             
 
         driver.close()
@@ -206,4 +204,3 @@ def get_list(user_login, user_password, chat_id):
     except NoSuchElementException:
         driver.close()
         return 'Error'
-        print('Error')
