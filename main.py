@@ -42,14 +42,19 @@ def get_km(message):
     zapas = km - gaz
     
     if zapas > 0:
-        print('Запас хода больше ноля')
         msg = 'Ты красавчик, твой километраж больше чем количество заправленного бензина. Ты проехад ' + str(zapas) + 'км, и у тебы в запасе ' + str(zapas / 10) + ' литров'
+        msg_1 = 'В этом месяце ты проехал ' + str(km) + ' километров, и заправился на ' + str(gaz / 10) + ' литров.'
+        bot.send_message(message.chat.id, msg_1, parse_mode='html')
         bot.send_message(message.chat.id, msg, parse_mode='html')
     if zapas < 0:
         msg = 'Твой километраж меньше чем заправленного бензина. Ты в минусе на ' + str(zapas) + 'km или на ' + str(zapas / 10) + 'литров бензина'
+        msg_1 = 'В этом месяце ты проехал ' + str(km) + ' километров, и заправился на ' + str(gaz / 10) + ' литров.'
+        bot.send_message(message.chat.id, msg_1, parse_mode='html')
         bot.send_message(message.chat.id, msg, parse_mode='html')
     if zapas == 0:
         msg = 'Твой пробег равен количеству бензина'
+        msg_1 = 'В этом месяце ты проехал ' + str(km) + ' километров, и заправился на ' + str(gaz / 10) + ' литров.'
+        bot.send_message(message.chat.id, msg_1, parse_mode='html')
         bot.send_message(message.chat.id, msg, parse_mode='html')
 
 
