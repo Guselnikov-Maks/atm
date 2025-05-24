@@ -81,8 +81,8 @@ def get_km(user_login, user_password):
             kol += int(number)
         
         driver.close()
-        ret = 'В этом мясецу вы проехали ' + str(kol) + 'км'
-        return ret
+        
+        return kol
     except NoSuchElementException:
         driver.close()
         return 'Error'

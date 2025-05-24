@@ -109,10 +109,9 @@ def get_km(chat_id):
         for i in data:
             kol += i[0]
             
-        ret = 'Общее количетсво бензина залито в этом месяце: ' + str(kol)
         db.commit()
         db.close()
-        return ret
+        return kol
     except mysql.connector.Error as err:
         db.close()
         return 'Произошла ошибка, обратитесь к администратору'

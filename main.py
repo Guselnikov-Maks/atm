@@ -17,10 +17,10 @@ bot.set_my_commands([
     telebot.types.BotCommand('/get_km', 'Получить пробег за месяц'),
     telebot.types.BotCommand('/get_gaz_list', 'Получить список заправок в этом месяце'),
     telebot.types.BotCommand('/register', 'Регистрация'),
-    telebot.types.BotCommand('/test', 'Test'),
-    telebot.types.BotCommand('/exel', 'Получить EXEL'),
-    telebot.types.BotCommand('/delete', 'Удалить меня'),
-    telebot.types.BotCommand('/sklad', 'Работа со складом')
+    #telebot.types.BotCommand('/test', 'Test'),
+    #telebot.types.BotCommand('/exel', 'Получить EXEL'),
+    #telebot.types.BotCommand('/delete', 'Удалить меня'),
+    #telebot.types.BotCommand('/sklad', 'Работа со складом')
 ])
 
 @bot.message_handler(commands=['start'])
@@ -33,7 +33,24 @@ def handle_start(message):
 def get_km(message):
     user = db.get_user_data(message.chat.id)
     bot.send_message(message.chat.id, 'Ожидайте')
-    bot.send_message(message.chat.id, web.get_km(user[0][0], user[0][1]))
+    #Получил количество километров
+    km = web.get_km(user[0][0], user[0][1])
+    
+    #Получаю заправки
+    gaz = db.get_km(message.chat.id) * 10
+
+    zapas = km - gaz
+    
+    if zapas > 0:
+        print('Запас хода больше ноля')
+        msg = 'Ты красавчик, твой километраж больше чем количество заправленного бензина. Ты проехад ' + str(zapas) + 'км, и у тебы в запасе ' + str(zapas / 10) + ' литров'
+        bot.send_message(message.chat.id, msg, parse_mode='html')
+    if zapas < 0:
+        msg = 'Твой километраж меньше чем заправленного бензина. Ты в минусе на ' + str(zapas) + 'km или на ' + str(zapas / 10) + 'литров бензина'
+        bot.send_message(message.chat.id, msg, parse_mode='html')
+    if zapas == 0:
+        msg = 'Твой пробег равен количеству бензина'
+        bot.send_message(message.chat.id, msg, parse_mode='html')
 
 
 @bot.message_handler(commands=['add_gaz'])
