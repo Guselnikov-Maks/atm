@@ -5,6 +5,7 @@ import telebot
 from telebot import types
 import time
 import os
+import photo as phs
 
 
 bot = telebot.TeleBot(settings.bot_token)
@@ -17,6 +18,8 @@ bot.set_my_commands([
     telebot.types.BotCommand('/get_km', 'Получить пробег за месяц'),
     telebot.types.BotCommand('/get_gaz_list', 'Получить список заправок в этом месяце'),
     telebot.types.BotCommand('/register', 'Регистрация'),
+    telebot.types.BotCommand('/test_photo_plata', 'Фото платы'),
+    telebot.types.BotCommand('/test_photo', 'Тест фото')
     #telebot.types.BotCommand('/test', 'Test'),
     #telebot.types.BotCommand('/exel', 'Получить EXEL'),
     #telebot.types.BotCommand('/delete', 'Удалить меня'),
@@ -28,6 +31,65 @@ def handle_start(message):
    msg = "Приветственное сообщение"
    chat_id = message.chat.id
    bot.send_message(message.chat.id, msg) 
+   
+   
+@bot.message_handler(commands=['test_photo'])
+def get_photo(message):
+    msg = bot.send_message(message.chat.id, 'Отправте фото')
+    bot.register_next_step_handler(msg, download_photo)
+   
+def download_photo(message):
+    try:
+        file_info = bot.get_file(message.photo[len(message.photo) - 1].file_id)
+        downloaded_file = bot.download_file(file_info.file_path)
+        src = file_info.file_path.replace('img/', '')
+        with open(src, 'wb') as new_file:
+            new_file.write(downloaded_file)
+            new_file.close()
+        bot.reply_to(message, 'Фото полученно')
+        bot.send_message(message.chat.id, 'Ожидайте, идет обработка')
+        test_str = phs.test(src)
+        msg = 'Сверте серийный номер:<pre>' + test_str + '</pre>'
+        bot.send_message(message.chat.id, msg, parse_mode='html')
+        
+        try:
+            os.remove(src)
+            bot.send_message(message.chat.id, 'Фото удаленно с сервера')
+        except Exception as e:
+            bot.send_message(message.chat.id, e)
+        
+    except Exception as e:
+        bot.reply_to(message, e)
+        
+        
+@bot.message_handler(commands=['test_photo_plata'])
+def get_photo(message):
+    msg = bot.send_message(message.chat.id, 'Отправте фото платы')
+    bot.register_next_step_handler(msg, download_photo_plata)
+   
+def download_photo_plata(message):
+    try:
+        file_info = bot.get_file(message.photo[len(message.photo) - 1].file_id)
+        downloaded_file = bot.download_file(file_info.file_path)
+        src = file_info.file_path.replace('img/', '')
+        with open(src, 'wb') as new_file:
+            new_file.write(downloaded_file)
+            new_file.close()
+        bot.reply_to(message, 'Фото полученно')
+        bot.send_message(message.chat.id, 'Ожидайте, идет обработка')
+        test_str = phs.plata(src)
+        msg = 'Сверте серийный номер:<pre>' + test_str + '</pre>'
+        bot.send_message(message.chat.id, msg, parse_mode='html')
+        
+        try:
+            os.remove(src)
+            bot.send_message(message.chat.id, 'Фото удаленно с сервера')
+        except Exception as e:
+            bot.send_message(message.chat.id, e)
+        
+    except Exception as e:
+        bot.reply_to(message, e)
+   
    
 @bot.message_handler(commands=['get_km'])
 def get_km(message):
