@@ -18,12 +18,8 @@ bot.set_my_commands([
     telebot.types.BotCommand('/get_km', 'Получить пробег за месяц'),
     telebot.types.BotCommand('/get_gaz_list', 'Получить список заправок в этом месяце'),
     telebot.types.BotCommand('/register', 'Регистрация'),
-    telebot.types.BotCommand('/test_photo_plata', 'Фото платы'),
-    telebot.types.BotCommand('/test_photo', 'Тест фото')
-    #telebot.types.BotCommand('/test', 'Test'),
-    #telebot.types.BotCommand('/exel', 'Получить EXEL'),
-    #telebot.types.BotCommand('/delete', 'Удалить меня'),
-    #telebot.types.BotCommand('/sklad', 'Работа со складом')
+    telebot.types.BotCommand('/help', 'Помощь'),
+    telebot.types.BotCommand('/callback', 'обратная связь')
 ])
 
 @bot.message_handler(commands=['start'])
@@ -33,64 +29,24 @@ def handle_start(message):
    bot.send_message(message.chat.id, msg) 
    
    
-@bot.message_handler(commands=['test_photo'])
-def get_photo(message):
-    msg = bot.send_message(message.chat.id, 'Отправте фото')
-    bot.register_next_step_handler(msg, download_photo)
+@bot.message_handler(commands=['help'])
+def handle_start(message):
+   msg_1 = "Перед началом испотзованием бота вам необходимо пройти регистрацию сооответствующей командой или нажать на /register. Вам необходимо боту сообщить ваш логи и пароль от сайта, после бот проведет тестовую авторизацию"
+   msg_2 = "После успешной авторизации можно использовать бота. Для правильного подсчета пробега необходимо указывать количество заправленного топлива в <b>литрах</b>"
+   bot.send_message(message.chat.id, msg_1, parse_mode='html')
+   bot.send_message(message.chat.id, msg_2, parse_mode='html')
    
-def download_photo(message):
-    try:
-        file_info = bot.get_file(message.photo[len(message.photo) - 1].file_id)
-        downloaded_file = bot.download_file(file_info.file_path)
-        src = file_info.file_path.replace('img/', '')
-        with open(src, 'wb') as new_file:
-            new_file.write(downloaded_file)
-            new_file.close()
-        bot.reply_to(message, 'Фото полученно')
-        bot.send_message(message.chat.id, 'Ожидайте, идет обработка')
-        test_str = phs.test(src)
-        msg = 'Сверте серийный номер:<pre>' + test_str + '</pre>'
-        bot.send_message(message.chat.id, msg, parse_mode='html')
-        
-        try:
-            os.remove(src)
-            bot.send_message(message.chat.id, 'Фото удаленно с сервера')
-        except Exception as e:
-            bot.send_message(message.chat.id, e)
-        
-    except Exception as e:
-        bot.reply_to(message, e)
-        
-        
-@bot.message_handler(commands=['test_photo_plata'])
-def get_photo(message):
-    msg = bot.send_message(message.chat.id, 'Отправте фото платы')
-    bot.register_next_step_handler(msg, download_photo_plata)
+@bot.message_handler(commands=['callback'])
+def handle_start(message):
+   msg = bot.send_message(message.chat.id, 'Введите одним сообщение текст который хотите сообщить администратору')
+   bot.register_next_step_handler(msg, fcalbuck)
    
-def download_photo_plata(message):
-    try:
-        file_info = bot.get_file(message.photo[len(message.photo) - 1].file_id)
-        downloaded_file = bot.download_file(file_info.file_path)
-        src = file_info.file_path.replace('img/', '')
-        with open(src, 'wb') as new_file:
-            new_file.write(downloaded_file)
-            new_file.close()
-        bot.reply_to(message, 'Фото полученно')
-        bot.send_message(message.chat.id, 'Ожидайте, идет обработка')
-        test_str = phs.plata(src)
-        msg = 'Сверте серийный номер:<pre>' + test_str + '</pre>'
-        bot.send_message(message.chat.id, msg, parse_mode='html')
-        
-        try:
-            os.remove(src)
-            bot.send_message(message.chat.id, 'Фото удаленно с сервера')
-        except Exception as e:
-            bot.send_message(message.chat.id, e)
-        
-    except Exception as e:
-        bot.reply_to(message, e)
-   
-   
+def fcalbuck(message):
+    msg = "Полученно новое сообщение" 
+    bot.send_message(7831441950, msg, parse_mode='html')
+    bot.send_message(7831441950, message.text, parse_mode='html')
+ 
+ 
 @bot.message_handler(commands=['get_km'])
 def get_km(message):
     user = db.get_user_data(message.chat.id)
@@ -104,13 +60,13 @@ def get_km(message):
     zapas = km - gaz
     
     if zapas > 0:
-        msg = 'Ты красавчик, твой километраж больше чем количество заправленного бензина. Ты проехад ' + str(zapas) + 'км, и у тебы в запасе ' + str(zapas / 10) + ' литров'
-        msg_1 = 'В этом месяце ты проехал ' + str(km) + ' километров, и заправился на ' + str(gaz / 10) + ' литров.'
+        msg = 'Ты красавчик, твой километраж больше чем количество заправленного бензина. Ты проехал <b>' + str(zapas) + 'км</b>, и у тебы в запасе ' + str(zapas / 10) + ' <b>литров</b>'
+        msg_1 = 'В этом месяце ты проехал <b>' + str(km) + ' километров</b>, и заправился на <b>' + str(gaz / 10) + ' литров.</b>'
         bot.send_message(message.chat.id, msg_1, parse_mode='html')
         bot.send_message(message.chat.id, msg, parse_mode='html')
     if zapas < 0:
-        msg = 'Твой километраж меньше чем заправленного бензина. Ты в минусе на ' + str(zapas) + 'km или на ' + str(zapas / 10) + 'литров бензина'
-        msg_1 = 'В этом месяце ты проехал ' + str(km) + ' километров, и заправился на ' + str(gaz / 10) + ' литров.'
+        msg = 'Твой километраж меньше чем заправленного бензина. Ты в минусе на <b>' + str(zapas) + 'km</b> или на <b>' + str(zapas / 10) + 'литров</b> бензина'
+        msg_1 = 'В этом месяце ты проехал <b>' + str(km) + ' километров</b> и заправился на <b>' + str(gaz / 10) + ' литров</b>.'
         bot.send_message(message.chat.id, msg_1, parse_mode='html')
         bot.send_message(message.chat.id, msg, parse_mode='html')
     if zapas == 0:
@@ -219,72 +175,6 @@ def register_user(message, login):
     bot.send_message(message.chat.id, ret, parse_mode='Markdown', reply_markup=markup)
     
 
-
-@bot.message_handler(commands=['sklad'])
-def sklad(message):
-    markup = types.InlineKeyboardMarkup()
-    btn_add = types.InlineKeyboardButton(text='Добавить запись', callback_data='add_zip')
-    btn_del = types.InlineKeyboardButton(text='Удалить запись', callback_data='del_zip')
-    btn_update = types.InlineKeyboardButton(text='Изменить статус', callback_data='change_zip')
-    btn_list = types.InlineKeyboardButton(text='GOOD список', callback_data='get_good')
-    btn_bad = types.InlineKeyboardButton(text='BAD список', callback_data='get_dab')
-    btn_sps = types.InlineKeyboardButton(text='Списать', callback_data='spisat_zip')
-    btn_all = types.InlineKeyboardButton(text='Получить весь список склада EXEL', callback_data='get_all')
-    msg = 'Что вы хотите сделать?'
-    markup.row(btn_add, btn_update)
-    markup.row(btn_list, btn_bad)
-    markup.row(btn_sps)
-    markup.row(btn_all)
-    bot.send_message(message.chat.id, msg, parse_mode='html', reply_markup=markup)
-    
-
-
-def add_zip(message):
-    ms = bot.send_message(message.chat.id, 'Введи серийный номер')
-    bot.register_next_step_handler(ms, add_zip_serial, message.text)
-    
-def add_zip_serial(message, name):
-    msg = 'Проверте правильность ввода Наименования ЗИП: <blockquote>' + name + '</blockquote> Серийный номер: <blockquote>' + message.text + '</blockquote>'
-    markup = types.InlineKeyboardMarkup()
-    btn_yes = types.InlineKeyboardButton(text='Да', callback_data='yes_zip_add')
-    btn_no = types.InlineKeyboardButton(text='Нет', callback_data='no_true')
-    markup.row(btn_yes, btn_no)
-    bot.send_message(message.chat.id, msg, parse_mode='html', reply_markup=markup)
-    
-def spis_zip(message):
-    first_msg = 'Идет поиск по серийному номеру: <blockquote>' + message.text + '</blockquote>'
-    bot.send_message(message.chat.id, first_msg, parse_mode='html')
-    data = db.find_serial(message.chat.id, message.text)
-
-    if len(data) > 1:
-        bot.send_message(message.chat.id, 'Найдено большо одной позиции, обратитесь к администратору')
-    elif len(data) == 0:
-        bot.send_message(message.chat.id, 'С таким серийным номером нет позиций')
-    else:
-        msg_zip = 'Наименование: <blockquote>' + data[0][1] + '</blockquote> Серийный номер: <blockquote>' + data[0][3] + '</blockquote> Статус: <blockquote>' + data[0][2] + '</blockquote>'
-        markup = types.InlineKeyboardMarkup()
-        btn_yes = types.InlineKeyboardButton(text='Да', callback_data='yes_spisat')
-        btn_no = types.InlineKeyboardButton('Нет', callback_data='no_true')
-        markup.row(btn_yes, btn_no)
-        bot.send_message(message.chat.id, msg_zip, parse_mode='html', reply_markup=markup)
-
-def change_status_zip(message):
-    first_msg = 'Идет поиск по серийному номеру: <blockquote>' + message.text + '</blockquote>'
-    bot.send_message(message.chat.id, first_msg, parse_mode='html')
-    data = db.find_serial(message.chat.id, message.text)
-
-    if len(data) > 1:
-        bot.send_message(message.chat.id, 'Найдено большо одной позиции, обратитесь к администратору')
-    elif len(data) == 0:
-        bot.send_message(message.chat.id, 'С таким серийным номером нет позиций')
-    else:
-        msg_zip = 'Наименование: <blockquote>' + data[0][1] + '</blockquote> Серийный номер: <blockquote>' + data[0][3] + '</blockquote> Статус: <blockquote>' + data[0][2] + '</blockquote>'
-        markup = types.InlineKeyboardMarkup()
-        btn_yes = types.InlineKeyboardButton(text='Да', callback_data='yes_change_status_zip')
-        btn_no = types.InlineKeyboardButton('Нет', callback_data='no_true')
-        markup.row(btn_yes, btn_no)
-        bot.send_message(message.chat.id, msg_zip, parse_mode='html', reply_markup=markup)
-
 @bot.callback_query_handler(func=lambda call:True)
 def response(function_call):
     if function_call.message:           
@@ -303,76 +193,6 @@ def response(function_call):
             print('Начать регитстрацию')
         if function_call.data == "no_true":
             bot.send_message(function_call.message.chat.id, 'начните сначала')
-        if function_call.data == 'add_zip':
-            msg_add = bot.send_message(function_call.message.chat.id, 'Ведите наименование ЗИП')
-            bot.register_next_step_handler(msg_add, add_zip)
-            
-        if function_call.data == 'change_zip':
-            msg = bot.send_message(function_call.message.chat.id, 'Введите серийный номер')
-            bot.register_next_step_handler(msg, change_status_zip)
-        if function_call.data == 'del_zip':
-            bot.send_message(function_call.message.chat.id, 'Удплить')
-        if function_call.data == 'get_good':
-            data = db.good_list_zip(function_call.message.chat.id)
-            for i in range(0, len(data)):
-                test_str = 'Наименование: <blockquote>' + data[i][1] + '</blockquote>Серийный номер: <blockquote>' + data[i][3] + '</blockquote>'
-                bot.send_message(function_call.message.chat.id, test_str, parse_mode='html')
-                time.sleep(0.5)
-            
-            
-        if function_call.data == 'get_dab':
-            data = db.bad_list_zip(function_call.message.chat.id)
-            for i in range(0, len(data)):
-                test_str = 'Наименование: <blockquote>' + data[i][1] + '</blockquote>Серийный номер: <blockquote>' + data[i][3] + '</blockquote>'
-                bot.send_message(function_call.message.chat.id, test_str, parse_mode='html')
-                time.sleep(0.5)
-            
-            
-            
-            
-            
-        if function_call.data == 'get_all':
-            bot.send_message(function_call.message.chat.id, 'Получить весь список склада')
-        if function_call.data == 'yes_zip_add':
-            str = function_call.message.text.split()
-            num = 0
-            num_serial = 0
-            i = 0
-            while i < len(str):
-                if str[i] == 'Серийный':
-                    num = i
-                if str[i] == 'номер:':
-                    num_serial = i + 1
-                i += 1
-            tmp_str = ''
-            for i in range(5, num):
-                tmp_str += str[i] + ' '
 
-            number_zip = str[num_serial]
-            otvet = db.add_zip(function_call.message.chat.id, tmp_str, number_zip)
-            bot.send_message(function_call.message.chat.id, otvet)
-        if function_call.data == 'spisat_zip':
-            msg = bot.send_message(function_call.message.chat.id, 'Введити серийный номер списываемого ЗИП:')
-            bot.register_next_step_handler(msg, spis_zip)
-        if function_call.data == 'yes_spisat':
-            str = function_call.message.text.split()
-            num = 0
-            i = 0
-            while i < len(str):
-                if str[i] == 'номер:':
-                    num = i + 1
-                i += 1
-            otc = db.spisat_zip(function_call.message.chat.id, str[num])
-            bot.send_message(function_call.message.chat.id, otc, parse_mode='html')
-        if function_call.data == 'yes_change_status_zip':
-            str = function_call.message.text.split()
-            i = 0
-            num_serial = 0
-            while i < len(str):
-                if str[i] == 'номер:':
-                    num_serial = i + 1
-                i += 1
-            otvet = db.change_status_zip(function_call.message.chat.id, str[num_serial])
-            bot.send_message(function_call.message.chat.id, otvet, parse_mode='html')
 
 bot.polling(none_stop=True, interval=0)
