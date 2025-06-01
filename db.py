@@ -1,9 +1,14 @@
 import mysql.connector
 import local_settings as settings
 from datetime import datetime
+import logging
+
+logging.basicConfig(level=logging.INFO, filename="/var/log/bot/atm/db.log",filemode="a",
+                    format="%(asctime)s %(levelname)s %(message)s")
 
 def register_user(user_login, user_password, chat_id):
     try:
+        logging.info('Производится регистрация пользователя')
         db = mysql.connector.connect(user=settings.mysql_user,
                                     password=settings.mysql_password,
                                     host=settings.mysql_host,
@@ -24,11 +29,13 @@ def register_user(user_login, user_password, chat_id):
             db.close()
             return 'Ваш логин успешно зарегистрирован в базе данных'
     except mysql.connector.Error as err:
+        logging.error(err)
         db.close()
         return 'Произошла ошибка, обратитесь к администратору'
         
 def delete_user(chat_id):
     try:
+        logging.info('Удаление пользователя')
         db = mysql.connector.connect(user=settings.mysql_user,
                                     password=settings.mysql_password,
                                     host=settings.mysql_host,
@@ -48,6 +55,7 @@ def delete_user(chat_id):
             return 'Вас нет в базе'
 
     except mysql.connector.Error as err:
+        logging.error(err)
         db.close()
         return 'Произошла ошибка, обратитесь к администратору'
 
@@ -71,6 +79,7 @@ def get_user_data(chat_id):
             return 'Вас нет в базе'
 
     except mysql.connector.Error as err:
+        logging.error(err)
         db.close()
         return 'Произошла ошибка, обратитесь к администратору'
 
@@ -90,6 +99,7 @@ def add_gas(chat_id, gaz):
         db.close()
         return 'Ваша заправка внесенна в базу'
     except mysql.connector.Error as err:
+        logging.error(err)
         db.close()
         return 'Произошла ошибка, обратитесь к администратору'
         
@@ -113,6 +123,7 @@ def get_km(chat_id):
         db.close()
         return kol
     except mysql.connector.Error as err:
+        logging.error(err)
         db.close()
         return 'Произошла ошибка, обратитесь к администратору'
 
@@ -133,6 +144,7 @@ def get_gaz_list(chat_id):
         db.close()
         return data
     except mysql.connector.Error as err:
+        logging.error(err)
         db.close()
         return 'Произошла ошибка, обратитесь к администратору'
 
@@ -147,103 +159,7 @@ def get_user_gaz(chat_id):
     cursor.execute("select user_login, user_password from gaz where chat_id = %s", (chat_id,))
     result = cursor.fetchall()
     
-def add_zip(chat_id, name, number):
 
-    try:
-        db = mysql.connector.connect(user=settings.mysql_user,
-                                 password=settings.mysql_password,
-                                 host=settings.mysql_host,
-                                 port=settings.mysql_port,
-                                 database='telegram')
-        
-        cursor = db.cursor()
-        cursor.execute("insert into sklad (name, state, number, status, date, chat_id) value (%s, 'GOOD', %s, 'На руках', NOW(), %s)",
-                       (name, number, chat_id))
-        
-        db.commit()
-        db.close()
-        return 'ZIP добавлен в базу данных в статусе GOOD'
-    except mysql.connector.Error as err:
-        db.close()
-        return 'Произошла ошибка, обратитесь к администратору'
-    
-def find_serial(chat_id, number):
-    try:
-        db = mysql.connector.connect(user=settings.mysql_user,
-                                 password=settings.mysql_password,
-                                 host=settings.mysql_host,
-                                 port=settings.mysql_port,
-                                 database='telegram')
-        
-        cursor = db.cursor()
-        cursor.execute("SELECT * FROM telegram.sklad where number = %s and chat_id = %s;",
-                       (number, chat_id))
-        data = cursor.fetchall()
-        db.commit()
-        db.close()
-        return data
-    except mysql.connector.Error as err:
-        db.close()
-        return 'Произошла ошибка, обратитесь к администратору'
-    
-def spisat_zip(chat_id, number):
-    try:
-        db = mysql.connector.connect(user=settings.mysql_user,
-                                 password=settings.mysql_password,
-                                 host=settings.mysql_host,
-                                 port=settings.mysql_port,
-                                 database='telegram')
-        
-        cursor = db.cursor()
-        cursor.execute("update sklad set status = 'На складе' where chat_id = %s and number = %s",
-                       (chat_id, number))
-        data = cursor.fetchall()
-        db.commit()
-        db.close()
-        return 'Статус изменен на <blockquote>На складе</blockquote>'
-    except mysql.connector.Error as err:
-        db.close()
-        return 'Произошла ошибка, обратитесь к администратору'
-    
-def change_status_zip(chat_id, number):
-    try:
-        db = mysql.connector.connect(user=settings.mysql_user,
-                                 password=settings.mysql_password,
-                                 host=settings.mysql_host,
-                                 port=settings.mysql_port,
-                                 database='telegram')
-        
-        cursor = db.cursor()
-        cursor.execute("update sklad set state = 'BAD' where chat_id = %s and number = %s",
-                       (chat_id, number))
-        data = cursor.fetchall()
-        db.commit()
-        db.close()
-        return 'Статус изменен на <blockquote>BAD</blockquote>'
-    except mysql.connector.Error as err:
-        db.close()
-        return 'Произошла ошибка, обратитесь к администратору'
-    
-def good_list_zip(chat_id):
-    try:
-        db = mysql.connector.connect(user=settings.mysql_user,
-                                 password=settings.mysql_password,
-                                 host=settings.mysql_host,
-                                 port=settings.mysql_port,
-                                 database='telegram')
-        
-        cursor = db.cursor()
-        cursor.execute("SELECT * FROM telegram.sklad where chat_id = %s and state = 'GOOD';",
-                       (chat_id,))
-        data = cursor.fetchall()
-        db.commit()
-        db.close()
-        return data
-    except mysql.connector.Error as err:
-        db.close()
-        return 'Произошла ошибка, обратитесь к администратору'
-    
-def bad_list_zip(chat_id):
     try:
         db = mysql.connector.connect(user=settings.mysql_user,
                                  password=settings.mysql_password,
@@ -259,5 +175,6 @@ def bad_list_zip(chat_id):
         db.close()
         return data
     except mysql.connector.Error as err:
+        logging.error(err)
         db.close()
         return 'Произошла ошибка, обратитесь к администратору'

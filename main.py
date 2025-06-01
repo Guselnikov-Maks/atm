@@ -6,11 +6,16 @@ from telebot import types
 import time
 import os
 import photo as phs
+import logging
 
 
 bot = telebot.TeleBot(settings.bot_token)
 bot.delete_webhook()
 
+logging.basicConfig(level=logging.INFO, filename="/var/log/bot/atm/main.log",filemode="a",
+                    format="%(asctime)s %(levelname)s %(message)s")
+
+logging.info('Start bot')
 bot.set_my_commands([
     telebot.types.BotCommand('/start', "Запустить бота и зарегистрироватся"),
     telebot.types.BotCommand('/add_gaz', 'Добавить заправку'),
@@ -38,10 +43,12 @@ def handle_start(message):
    
 @bot.message_handler(commands=['callback'])
 def handle_start(message):
-   msg = bot.send_message(message.chat.id, 'Введите одним сообщение текст который хотите сообщить администратору')
-   bot.register_next_step_handler(msg, fcalbuck)
+    logging.info('Готовится сообщение обратной связи')
+    msg = bot.send_message(message.chat.id, 'Введите одним сообщение текст который хотите сообщить администратору')
+    bot.register_next_step_handler(msg, fcalbuck)
    
 def fcalbuck(message):
+    logging.info('Отправлена обратная связь')
     msg = "Полученно новое сообщение" 
     bot.send_message(7831441950, msg, parse_mode='html')
     bot.send_message(7831441950, message.text, parse_mode='html')
@@ -58,6 +65,8 @@ def get_km(message):
     gaz = db.get_km(message.chat.id) * 10
 
     zapas = km - gaz
+    
+    logging.info('get km')
     
     if zapas > 0:
         msg = 'Ты красавчик, твой километраж больше чем количество заправленного бензина. Ты проехал <b>' + str(zapas) + 'км</b>, и у тебы в запасе ' + str(zapas / 10) + ' <b>литров</b>'
@@ -86,7 +95,8 @@ def add_gaz(message):
         numb = int(message.text)
         msg = db.add_gas(message.chat.id, numb)
         bot.send_message(message.chat.id, msg)
-    except:
+    except Exception as e:
+        logging.error(e)
         bot.send_message(message.chat.id, 'Не удалось добавить')
     
     
@@ -155,6 +165,7 @@ def test(message):
     
 @bot.message_handler(commands=['delete'])
 def delete_user(message):
+    logging.info("Удален пользователь")
     bot.send_message(message.chat.id, db.delete_user(message.chat.id))
 
 @bot.message_handler(commands=['register'])
@@ -196,3 +207,4 @@ def response(function_call):
 
 
 bot.polling(none_stop=True, interval=0)
+logging.info('Bot stopping')
